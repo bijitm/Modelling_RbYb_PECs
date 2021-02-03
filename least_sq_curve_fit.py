@@ -44,8 +44,8 @@ def so_operator(R,param):
     c = param[1,:]
     alpha = param[2,:]
 
-    a = a_so*(1 + c*np.exp(-alpha*(R-r0)**2))
-    # a = a_so + c*(1-np.tanh(alpha*(R-r0)))
+    # a = a_so*(1 + c*np.exp(-alpha*(R-r0)**2))
+    a = a_so + c*(1-np.tanh(alpha*(R-r0)))
     return a
 
 def func_pecs(v,a_so):
@@ -96,6 +96,7 @@ def func_residues(x,*args):
         #we do not want to have negetive numbers inside square roots
         #hence assign a big no. to the y_fit to push off the optimization process
         a1, a2, a3, a4 = a_so
+        # print(a_so)
         # l = np.array([a1*a2, a1*a3, a2*a3, a2*a4, a3*a4])
         l = np.array([a1, a2, a3, a4])
         if any(t < 0 for t in l):                       #Constraint #1
@@ -123,6 +124,8 @@ def func_residues(x,*args):
     
     v_so = v_so.reshape(R_arr.size * 9)
     w_so = w_so.reshape(R_arr.size * 9)
+
+    print(np.sum((v_so-w_so)**2)/R_arr.size)
 
     return  v_so - w_so
 
@@ -155,25 +158,29 @@ x0 = np.append(param_pecs,param_aso)
 ll = nparam_pec*npec
 
 #Defining an array of uncertainties in the parameters
-A_sig, beta_sig = 0.1, 0.05
-c_sig, r0_sig = 0.05, 0.1
+A_sig, beta_sig = 0.2, 0.1
+c_sig, r0_sig, alpha_sig = 1, 0.1, 0.5
 x_sig = random.rand(x0.size)
-x_sig[0:8] = A_sig * np.cos(np.pi*x_sig[0:8])
-x_sig[8:16] = beta_sig * np.cos(np.pi*x_sig[8:16])
-x_sig[ll:ll+4] = r0_sig * np.cos(np.pi*x_sig[ll:ll+4])
-x_sig[ll+4:ll+12] = c_sig * np.cos(np.pi*x_sig[ll+4:ll+12])
+x_sig[0:8] = A_sig * (1-2*x_sig[0:8])
+x_sig[8:16] = beta_sig * (1-2*x_sig[8:16])
+x_sig[ll:ll+4] = r0_sig * (1-2*x_sig[ll:ll+4])
+x_sig[ll+4:ll+8] = c_sig * (1-2*x_sig[ll+4:ll+8])
+x_sig[ll+8:ll+12] = alpha_sig * (1-2*x_sig[ll+8:ll+12])
 x0 = x0 + x_sig
 
 #defining bounds on the parameters
 x_lbounds = np.zeros(x0.size)               #default lower bounds for all
 x_ubounds = np.inf * np.ones(x0.size)       #default upper bounds for all
-x_lbounds[ll:ll+4] = 4                      #lower bounds for R0
-# x_lbounds[ll+4:ll+7] = -1.1                   #lower bounds for c
-x_lbounds[ll+4:ll+7] = -np.inf            #lower bounds for c
-# x_lbounds[ll+7] = -0.1            #lower bounds for c
+x_lbounds[ll:ll+4] = 4.5                      #lower bounds for R0
+# x_lbounds[ll+4:ll+7] = -1                   #lower bounds for c
+x_lbounds[ll+4:ll+8] = -403.045            #lower bounds for c
+x_lbounds[ll+8:ll+12] = 0.5                     #lower bounds for alpha
 x_ubounds[7] = 1.0e-12                        #upper bounds for B_^4Sigma
 x_ubounds[15] = 1.0e-12                        #upper bounds for beta2_^4Sigma
-x_ubounds[ll:ll+4] = 7                      #upper bounds for R0
+x_ubounds[ll:ll+4] = 6                      #upper bounds for R0
+# x_ubounds[ll+3] = 1.e-12                   #upper bounds for c of a4
+# x_ubounds[ll+7] = 1.e-12                   #upper bounds for c of a4
+# x_ubounds[ll+11] = 1.e-12                   #upper bounds for alpha of a4
 
 for i in range(x0.size):
     if x0[i] < x_lbounds[i]:
@@ -205,7 +212,8 @@ v_so[:,8] = vv[:,6]
 print("Running optimization...\n")
 
 args = (R_arr, v_so)
-res = least_squares(func_residues,x0,bounds=(x_lbounds,x_ubounds),args=args)
+res = least_squares(func_residues,x0,bounds=(x_lbounds,x_ubounds),\
+                    ftol=1.e-5,xtol=1.e-7,gtol=1.e-8,args=args)
 param_pecs, param_aso = res.x[:npec*nparam_pec], res.x[npec*nparam_pec:]
 
 print("Optimization done\n")

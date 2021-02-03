@@ -124,7 +124,8 @@ subroutine aso_func(R,param,aso)
     r0 = param(:4)
     c = param(5:8)
     alpha = param(9:12)
-    aso = a_so_yb*(1.0d0 + c*exp(-alpha*(R-r0)**2))
+    ! aso = a_so_yb*(1.0d0 + c*exp(-alpha*(R-r0)**2))
+    aso = a_so_yb + c*(1.0d0-tanh(alpha*(R-r0)))
     return    
 end subroutine aso_func
 
