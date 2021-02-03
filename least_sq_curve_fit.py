@@ -21,7 +21,6 @@ def model_pecs(R,param):
     B = param[1,:]*Eh
     beta1 = param[2,:]/a0
     beta2 = param[3,:]/a0
-    # c6pi, c6sig = 3915.3*Eh*a0**6, 4486.9*Eh*a0**6
     c6pi, c6sig = 4067.6*Eh*a0**6, 4661.5*Eh*a0**6
     C6 = np.array([c6sig,c6pi,c6pi,c6sig])
     C8 = np.copy(C6)
