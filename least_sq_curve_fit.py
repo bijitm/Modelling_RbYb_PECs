@@ -137,9 +137,9 @@ x0 = np.append(param_pecs,param_aso)
 ll = nparam_pec*npec
 
 #Defining an array of uncertainties in the parameters
-# A_sig, beta_sig = 0.0001, 0.001
-A_sig, beta_sig = 0, 0
-c_sig, r0_sig, alpha_sig = 0.5, 0.5, 0.5
+A_sig, beta_sig = 0.001, 0.0001
+# A_sig, beta_sig = 0, 0
+c_sig, r0_sig, alpha_sig = 0.5, 0.05, 0.5
 x_sig = random.rand(x0.size)
 x_sig[0:8] = A_sig * (1-2*x_sig[0:8])
 x_sig[8:16] = beta_sig * (1-2*x_sig[8:16])
@@ -151,16 +151,16 @@ x0 = x0 + x_sig
 #defining bounds on the parameters
 x_lbounds = np.zeros(x0.size)               #default lower bounds for all
 x_ubounds = np.inf * np.ones(x0.size)       #default upper bounds for all
-x_lbounds[ll:ll+4] = 4                      #lower bounds for R0
+# x_lbounds[ll:ll+4] = 4                      #lower bounds for R0
 # x_lbounds[ll+4:ll+7] = -1                   #lower bounds for c
 x_lbounds[ll+4:ll+7] = -4.03045            #lower bounds for c
-x_lbounds[ll+7] = -0.1                           #lower bounds for c
+x_lbounds[ll+7] = -0.5                           #lower bounds for c
 x_lbounds[ll+8:ll+12] = 0.5                     #lower bounds for alpha
 x_ubounds[7] = 1.0e-12                        #upper bound for B_^4Sigma
 x_ubounds[15] = 1.0e-12                        #upper bound for beta2_^4Sigma
-x_ubounds[ll:ll+4] = 6                      #upper bounds for R0
+# x_ubounds[ll:ll+4] = 6                      #upper bounds for R0
 # x_ubounds[ll+3] = 1.e-12                   #upper bound for R0 of a4
-x_ubounds[ll+7] = 0.1                   #upper bound for c of a4
+x_ubounds[ll+7] = 0.5                   #upper bound for c of a4
 # x_ubounds[ll+11] = 1.e-12                   #upper bound for alpha of a4
 
 for i in range(x0.size):
@@ -192,7 +192,7 @@ print("Running optimization...\n")
 
 args = (R_arr, v_so)
 res = least_squares(func_residues,x0,bounds=(x_lbounds,x_ubounds),\
-                    ftol=1.e-6,xtol=1.e-8,gtol=1.e-8,args=args,verbose=1)
+                    ftol=1.e-7,xtol=1.e-8,gtol=1.e-8,args=args,verbose=1)
 param_pecs, param_aso = res.x[:npec*nparam_pec], res.x[npec*nparam_pec:]
 
 print("Optimization done\n")
