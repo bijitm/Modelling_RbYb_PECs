@@ -68,14 +68,13 @@ subroutine potential(R,param,v)
     real(kind=8) :: A(npec), B(npec), beta1(npec), beta2(npec)
     real(kind=8), parameter :: Eh = 2.1947463d5, a0 = 0.5291772d0
     real(kind=8), parameter :: c6pi = 4067.6*Eh*a0**6, c6sig = 4661.5*Eh*a0**6
-    ! real(kind=8), parameter :: c6pi = 3915.3*Eh*a0**6, c6sig = 4486.9*Eh*a0**6
     real(kind=8), parameter, dimension(npec) :: c6 = [c6sig, c6pi, c6pi, c6sig]
     real(kind=8), parameter, dimension(npec) :: c8 = 80.0d0*a0**2*c6
     real(kind=8) :: damp
     integer :: i
     
-    A = param(:4)*Eh
-    B = param(5:8)*Eh
+    A = param(:4)*10.0d0*Eh
+    B = param(5:8)*10.0d0*Eh
     beta1 = param(9:12)/a0
     beta2 = param(13:16)/a0
     v = A*exp(-beta1*R) - B*exp(-beta2*R)
@@ -122,9 +121,8 @@ subroutine aso_func(R,param,aso)
     real(kind=8) :: r0(naso), c(naso), alpha(naso)
     
     r0 = param(:4)
-    c = param(5:8)
+    c = param(5:8)*100.0d0
     alpha = param(9:12)
-    ! aso = a_so_yb*(1.0d0 + c*exp(-alpha*(R-r0)**2))
     aso = a_so_yb + c*(1.0d0-tanh(alpha*(R-r0)))
     return    
 end subroutine aso_func
