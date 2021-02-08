@@ -2,7 +2,7 @@ module constants
     implicit none
     real(kind=8), parameter :: a_so_yb = 806.09d0
     integer, parameter :: ndat = 107, npec = 4, naso = 4
-    integer, parameter :: nparam_pec = 13, nparam_aso = 9
+    integer, parameter :: nparam_pec = 14, nparam_aso = 12
     real(kind=8) :: cof_pec(nparam_pec), cof_aso(nparam_aso)
     real(kind=8) :: r(ndat)
     integer, parameter :: N1 = 3, N2=5, LWORK1 = max(1,3*N1-1), LWORK2 = max(1,3*N2-1)
@@ -74,10 +74,10 @@ subroutine potential(R,param,v)
     real(kind=8) :: damp
     integer :: i
     
-    A = [param(1),param(5),param(9),param(12)]*10.0d0*Eh
+    A = [param(1),param(5),param(9),param(13)]*10.0d0*Eh
     B = [param(2),param(6),param(10),0.0d0]*10.0d0*Eh
-    beta1 = [param(3),param(7),param(11),param(13)]/a0
-    beta2 = [param(4),param(8),param(8),0.0d0]/a0
+    beta1 = [param(3),param(7),param(11),param(14)]/a0
+    beta2 = [param(4),param(8),param(12),0.0d0]/a0
     v = A*exp(-beta1*R) - B*exp(-beta2*R)
     do i=1,npec
         v(i) = v(i) - damp(R,beta1(i),6)*c6(i)/R**6 - damp(R,beta1(i),8)*c8(i)/R**8
@@ -121,9 +121,9 @@ subroutine aso_func(R,param,aso)
     real(kind=8), intent(out) :: aso(naso)
     real(kind=8) :: r0(naso), c(naso), alpha(naso)
     
-    r0 = [param(1),param(4),param(7),0.d0]
-    c = [param(2),param(5),param(8),0.d0]*100.0d0
-    alpha = [param(3),param(6),param(9),0.d0]
+    r0 = [param(1),param(4),param(7),param(10)]
+    c = [param(2),param(5),param(8),param(11)]*100.0d0
+    alpha = [param(3),param(6),param(9),param(12)]
     aso = a_so_yb + c*(1.0d0-tanh(alpha*(R-r0)))
     return    
 end subroutine aso_func
