@@ -17,16 +17,21 @@ def model_pecs(R,param):
     D_n = 1 - exp(-beta1*R)Sum_{i=0}^n (beta1*R)^i/i! '''
 
     # param = param.reshape(nparam_pec, npec)
-    A = np.array([param[0], param[4], param[8], param[12]])*10*Eh
-    B = np.array([param[1], param[5], param[9], 0])*10*Eh
-    beta1 = np.array([param[2], param[6], param[10], param[13]])/a0
-    beta2 = np.array([param[3], param[7], param[11], 0])/a0
+    A1 = np.array([param[0], param[4], param[8], param[12]])*10*Eh
+    B1 = np.array([param[1], param[5], param[9], 0])*10*Eh
+    alpha1 = np.array([param[2], param[6], param[10], param[13]])/a0
+    beta1 = np.array([param[3], param[7], param[11], 0])/a0
+    A2 = np.array([0, param[14], 0, 0])*10*Eh
+    B2 = np.array([0, param[15], param[18], 0])*10*Eh
+    alpha2 = np.array([0, param[16], 0, 0])/a0
+    beta2 = np.array([0, param[17], param[17], 0])/a0
     c6pi, c6sig = 4067.6*Eh*a0**6, 4661.5*Eh*a0**6
     c6 = np.array([c6sig,c6pi,c6pi,c6sig])
-    c8 = np.copy(c6)*80*a0**2
+    c8 = np.copy(c6)*100*a0**2
 
-    v = A*np.exp(-np.outer(R,beta1)) - B*np.exp(-np.outer(R,beta2)) 
-    v += -damp(R,beta1,6)*np.outer(1/R**6,c6) - damp(R,beta1,8)*np.outer(1/R**8,c8)
+    v = A1*np.exp(-np.outer(R,alpha1)) - B1*np.exp(-np.outer(R,beta1))
+    v += A2*np.exp(-np.outer(R,alpha2)) - B2*np.exp(-np.outer(R,beta2))
+    v += -damp(R,alpha1,6)*np.outer(1/R**6,c6) - damp(R,alpha1,8)*np.outer(1/R**8,c8)
 
     return v
 
@@ -35,9 +40,9 @@ def so_operator(R,param):
 
     # param = param.reshape(nparam_aso, naso)
     a_so = 806.09 
-    r0 = np.array([param[0], param[3], param[6], param[9]])
-    c = np.array([param[1], param[4], param[7], param[10]])*100
-    alpha = np.array([param[2], param[5], param[8], param[11]])
+    r0 = np.array([param[0], param[3], param[6], 0])
+    c = np.array([param[1], param[4], param[7], 0])*100
+    alpha = np.array([param[2], param[5], param[8], 0])
 
     a = a_so + c*(1-np.tanh(alpha*np.add.outer(R,-r0)))
     return a
@@ -88,8 +93,8 @@ def func_residues(x,*args):
 
     # assigning weights
     #lowering weights for any R<3.8 ang
-    w_so[R_arr<3.8,:] = 0.01*w_so[R_arr<3.8,:]
-    v_so[R_arr<3.8,:] = 0.01*v_so[R_arr<3.8,:]
+    # w_so[R_arr<3.8,:] = 0.01*w_so[R_arr<3.8,:]
+    # v_so[R_arr<3.8,:] = 0.01*v_so[R_arr<3.8,:]
     
     v_so = v_so.reshape(R_arr.size * 9)
     w_so = w_so.reshape(R_arr.size * 9)
@@ -102,8 +107,8 @@ def func_residues(x,*args):
 
 
 Eh, a0 = 2.1947463e5, 0.5291772         #Hartree to cm-1, bohr to ang
-nparam_pec = 14                         #No. of parameters for PECs
-nparam_aso = 12                         #No. of parameters for a_SO functions
+nparam_pec = 19                         #No. of parameters for PECs
+nparam_aso = 9                         #No. of parameters for a_SO functions
 
 parameters = np.loadtxt("./fortran_pec_input.dat")
 param_pecs = parameters[:nparam_pec]
@@ -147,16 +152,12 @@ x_ubounds = np.inf * np.ones(x0.size)       #default upper bounds for all
 x_lbounds[nparam_pec+1] = -4.03045
 x_lbounds[nparam_pec+4] = -4.03045
 x_lbounds[nparam_pec+7] = -4.03045
-x_lbounds[nparam_pec+10] = -0.2
 x_lbounds[nparam_pec] = 0.5
 x_lbounds[nparam_pec+3] = 0.5
 x_lbounds[nparam_pec+6] = 0.5
-x_lbounds[nparam_pec+9] = 0.5
 x_ubounds[nparam_pec] = 7
 x_ubounds[nparam_pec+3] = 7
 x_ubounds[nparam_pec+6] = 7
-x_ubounds[nparam_pec+9] = 7
-x_ubounds[nparam_pec+10] = 0.2
 
 
 # for i in range(x0.size):
@@ -166,6 +167,7 @@ x_ubounds[nparam_pec+10] = 0.2
 #         x0[i] = x_ubounds[i]
 
 #Reading interpolated datafile
+# abinitioFile = np.loadtxt("./PECs_so_fit.dat")
 abinitioFile = np.loadtxt("./PECs_so_fit_dense.dat")
 R_arr = abinitioFile[:,0]
 print("No. of R grids for optimization:",R_arr.size,"\n")

@@ -4,8 +4,7 @@ abinitioFile = np.loadtxt("./PECs_so_fit.dat")
 R = abinitioFile[:,0]
 print("Original no. of grids:",R.size)
 V = abinitioFile[:,1:]
-R_new = np.arange(3,4,0.1)
-# R_new = np.append(R_new,np.arange(4,8,0.02))
+R_new = np.arange(3.7,4,0.1)
 R_new = np.append(R_new,np.arange(4,10,0.05))
 R_new = np.append(R_new,np.arange(10,12,0.1))
 R_new = np.append(R_new,np.arange(12,20.5,0.5))
